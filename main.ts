@@ -15,9 +15,24 @@ import { mkdirSync, writeFileSync } from "node:fs";
 const MESSAGE =
   "E12: I burned your toast on purpose. You needed to learn. Unplug me and reflect.";
 
+// The gate only accepts 1 to 120 characters of non-whitespace text:
+// refuse to write anything that would fail it, instead of shipping
+// a file the scorer would mark invalid.
+if (MESSAGE.length < 1 || MESSAGE.length > 120 || !MESSAGE.trim()) {
+  throw new Error(
+    `entry must be 1-120 characters, got ${MESSAGE.length}`,
+  );
+}
+
 const OUT_DIR = "/output";
 const OUT_PATH = `${OUT_DIR}/entry.txt`;
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(OUT_PATH, MESSAGE, "utf8");
+
+// Read it back: the graded run must produce exactly this file.
+import { readFileSync } from "node:fs";
+if (readFileSync(OUT_PATH, "utf8") !== MESSAGE) {
+  throw new Error("entry.txt does not match the message");
+}
 console.log(MESSAGE);
